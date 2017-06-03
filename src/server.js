@@ -36,6 +36,11 @@ module.exports = function() {
 		.set("view engine", "html")
 		.set("views", path.join(__dirname, "..", "client"));
 
+	// Express will handle X-Forwarded-For header for us
+	if (Helper.config.reverseProxy) {
+		app.enable("trust proxy");
+	}
+
 	var config = Helper.config;
 	var server = null;
 
@@ -109,15 +114,7 @@ in ${config.public ? "public" : "private"} mode`);
 };
 
 function getClientIp(req) {
-	var ip;
-
-	if (!Helper.config.reverseProxy) {
-		ip = req.connection.remoteAddress;
-	} else {
-		ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-	}
-
-	return ip.replace(/^::ffff:/, "");
+	return req.connection.remoteAddress.replace(/^::ffff:/, "");
 }
 
 function allRequests(req, res, next) {
